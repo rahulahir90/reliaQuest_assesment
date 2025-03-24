@@ -4,10 +4,8 @@ import com.reliaquest.server.config.ServerConfiguration;
 import com.reliaquest.server.model.CreateMockEmployeeInput;
 import com.reliaquest.server.model.DeleteMockEmployeeInput;
 import com.reliaquest.server.model.MockEmployee;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -54,5 +52,25 @@ public class MockEmployeeService {
         }
 
         return false;
+    }
+
+    public OptionalInt getHighestSalary() {
+        return mockEmployees.stream().mapToInt(MockEmployee::getSalary).max();
+    }
+
+    public Optional<List<MockEmployee>> findByName(@NonNull String name) {
+        log.debug("Search by Name: {}", name);
+        return Optional.of(mockEmployees.stream()
+                .filter(mockEmployee -> Objects.nonNull(mockEmployee.getName())
+                        && mockEmployee.getName().equals(name))
+                .collect(Collectors.toList()));
+    }
+
+    public List<String> getTopTenHighestEarningEmployeeNameList() {
+        return mockEmployees.stream()
+                .sorted(Comparator.comparingInt(MockEmployee::getSalary).reversed())
+                .map(MockEmployee::getName)
+                .limit(10)
+                .collect(Collectors.toList());
     }
 }

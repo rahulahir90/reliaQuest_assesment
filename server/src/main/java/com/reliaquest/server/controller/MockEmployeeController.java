@@ -7,6 +7,7 @@ import com.reliaquest.server.model.Response;
 import com.reliaquest.server.service.MockEmployeeService;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.OptionalInt;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -47,5 +48,26 @@ public class MockEmployeeController {
     @DeleteMapping()
     public Response<Boolean> deleteEmployee(@Valid @RequestBody DeleteMockEmployeeInput input) {
         return Response.handledWith(mockEmployeeService.delete(input));
+    }
+
+    @GetMapping("/highestSalary")
+    public ResponseEntity<Integer> getHighestSalaryOfEmployees() {
+        OptionalInt maxSalary = mockEmployeeService.getHighestSalary();
+        return maxSalary.isPresent()
+                ? ResponseEntity.ok(maxSalary.getAsInt())
+                : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+
+    @GetMapping("/search/{searchString}")
+    public ResponseEntity<Response<List<MockEmployee>>> getEmployeesByNameSearch(@PathVariable String searchString) {
+        return mockEmployeeService
+                .findByName(searchString)
+                .map(employee -> ResponseEntity.ok(Response.handledWith(employee)))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(Response.handled()));
+    }
+
+    @GetMapping("/topTenHighestEarningEmployeeNames")
+    ResponseEntity<List<String>> getTopTenHighestEarningEmployeeNames() {
+        return ResponseEntity.ok(mockEmployeeService.getTopTenHighestEarningEmployeeNameList());
     }
 }
